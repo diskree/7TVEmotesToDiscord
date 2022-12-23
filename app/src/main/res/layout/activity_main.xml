@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.2"
+        android:layout_weight="1"
         android:background="@color/main_banner_background"
         android:gravity="center">
 
@@ -15,29 +17,61 @@
             android:layout_width="37dp"
             android:layout_height="37dp"
             android:alpha="0.8"
-            android:src="@drawable/icon_7tv" />
+            android:src="@drawable/icon_7tv"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginStart="10dp"
             android:alpha="0.6"
-            android:src="@drawable/ic_arrow_right" />
+            android:src="@drawable/ic_arrow_right"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:alpha="0.8"
-            android:src="@drawable/icon_discord" />
+            android:src="@drawable/icon_discord"
+            tools:ignore="ContentDescription" />
 
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.6">
+        android:layout_weight="2">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:padding="16dp">
 
-    </LinearLayout>
+            <EditText
+                android:id="@+id/url_input_bar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/url_input_bar_background"
+                android:gravity="center_vertical|left"
+                android:paddingLeft="8dp"
+                android:textColor="#ccc"
+                android:textSize="14sp"
+                tools:ignore="HardcodedText,RtlHardcoded,RtlSymmetry" />
+
+            <ImageView
+                android:id="@+id/process_button"
+                android:layout_width="72dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/url_input_bar_background"
+                android:scaleType="center"
+                android:src="@drawable/ic_copy"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>
