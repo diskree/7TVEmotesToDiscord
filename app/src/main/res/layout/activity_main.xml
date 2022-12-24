@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/url_background"
+    android:background="#444"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -11,14 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:layout_gravity="top"
-        android:background="@color/main_banner_background"
+        android:background="#222"
         android:gravity="center">
 
         <ImageView
             android:layout_width="37dp"
             android:layout_height="37dp"
             android:alpha="0.8"
-            android:src="@drawable/icon_7tv"
+            android:src="@drawable/ic_7tv"
             tools:ignore="ContentDescription" />
 
         <ImageView
@@ -33,44 +34,208 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:alpha="0.8"
-            android:src="@drawable/icon_discord"
+            android:src="@drawable/ic_ds"
             tools:ignore="ContentDescription" />
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/preview"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
 
-    <LinearLayout
+        <LinearLayout
+            android:id="@+id/placeholder_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/placeholder_description"
+                android:textColor="#bbb"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/site_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_description_button"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:text="@string/placeholder_button"
+                android:textColor="#fff" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/error_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="#ccc"
+            android:visibility="gone"
+            app:drawableTopCompat="@drawable/ic_error" />
+
+        <ImageView
+            android:id="@+id/preview_image"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:ignore="ContentDescription" />
+
+    </FrameLayout>
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp">
 
-        <EditText
-            android:id="@+id/url_input_bar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/url_input_bar_background"
-            android:gravity="center_vertical|left"
-            android:paddingLeft="8dp"
-            android:textColor="#ccc"
-            android:textSize="14sp"
-            tools:ignore="HardcodedText,RtlHardcoded,RtlSymmetry" />
+        <LinearLayout
+            android:id="@+id/search_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
 
-        <ImageView
-            android:id="@+id/process_button"
-            android:layout_width="72dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/url_input_bar_background"
-            android:scaleType="center"
-            android:src="@drawable/ic_copy"
-            tools:ignore="ContentDescription" />
+            <EditText
+                android:id="@+id/input_bar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input_bar"
+                android:gravity="center_vertical|left"
+                android:hint="@string/input_bar_hint"
+                android:paddingLeft="12dp"
+                android:textColor="#ccc"
+                android:textColorHint="#ccc"
+                android:textSize="14sp"
+                tools:ignore="Autofill,HardcodedText,RtlHardcoded,RtlSymmetry,TextFields" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/clipboard_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_clipboard_button"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="10dp"
+                android:scaleType="center"
+                android:text="@string/or_paste_url_from_clipboard"
+                android:textColor="#ccc"
+                android:textSize="11sp"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_clipboard_button"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:rotationY="180"
+                android:scaleType="center"
+                android:src="@drawable/ic_search"
+                android:visibility="gone"
+                tools:ignore="ContentDescription" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/preview_actions_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:id="@+id/close_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_cancel_button">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:paddingVertical="10dp"
+                    android:text="@string/close"
+                    android:textColor="#fff"
+                    android:textSize="11sp"
+                    app:drawableLeftCompat="@drawable/ic_close" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/optimize_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="16dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_optimize_button">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:paddingVertical="10dp"
+                    android:text="@string/optimize"
+                    android:textColor="#fff"
+                    android:textSize="11sp"
+                    app:drawableLeftCompat="@drawable/ic_optimize" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/save_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_save_button">
+
+                <TextView
+                    android:id="@+id/save_button_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:paddingVertical="10dp"
+                    android:text="@string/save_to_gallery"
+                    android:textColor="#fff"
+                    android:textSize="11sp"
+                    app:drawableLeftCompat="@drawable/ic_save" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>

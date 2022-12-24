@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Emotes To Discord</string>
+    <string name="or_paste_url_from_clipboard">URL from\nclipboard</string>
+    <string name="placeholder_description">Convert 7TV emote to\nsupported format for Discord</string>
+    <string name="placeholder_button">Open 7TV</string>
+    <string name="input_bar_hint">Search emote…</string>
+    <string name="error_loading_internet">Loading error. Check internet connection</string>
+    <string name="error_loading_url">Loading error. Check emote URL</string>
+    <string name="close">Close</string>
+    <string name="optimize">Optimize</string>
+    <string name="save_to_gallery">Save to Gallery</string>
 </resources>

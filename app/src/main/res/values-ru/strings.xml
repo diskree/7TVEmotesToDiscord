@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Emotes To Discord</string>
+    <string name="or_paste_url_from_clipboard">Ссылка из\nбуфера обмен</string>
+    <string name="placeholder_description">Конвертируйте 7TV-эмоуты в формат\nподходящий для Discord</string>
+    <string name="placeholder_button">Открыть 7TV сайт</string>
+    <string name="input_bar_hint">Поиск эмоута…</string>
+    <string name="error_loading_internet">Ошибка загрузки. Проверьте подключение к Интернету</string>
+    <string name="error_loading_url">Ошибка загрузки. Проверьте ссылку на эмоут</string>
+    <string name="close">Закрыть</string>
+    <string name="optimize">Оптимизировать</string>
+    <string name="save_to_gallery">Сохранить в галерею</string>
+</resources>
