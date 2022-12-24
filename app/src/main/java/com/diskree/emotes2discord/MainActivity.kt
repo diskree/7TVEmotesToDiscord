@@ -5,13 +5,16 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diskree.emotes2discord.databinding.ActivityMainBinding
 import okhttp3.*
 import okio.IOException
@@ -23,6 +26,8 @@ class MainActivity : AppCompatActivity() {
 
     private val handler: Handler by lazy { Handler(mainLooper) }
     private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private var currentFile: File? = null
+    private var currentEmoteId: String? = null
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,15 +74,31 @@ class MainActivity : AppCompatActivity() {
 
         }
         binding.saveButton.setOnClickListener {
-
+            val file = currentFile ?: return@setOnClickListener
+            val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString() + "/" + "7TV")
+            } else {
+                File(Environment.getExternalStorageDirectory().toString() + "/" + "7TV")
+            }
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            file.copyTo(File(dir, "$currentEmoteId.${file.extension}"), true)
+            val uri = Uri.fromFile(file);
+            try {
+                val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                mediaScanIntent.data = uri
+                sendBroadcast(mediaScanIntent)
+            } catch (_: Exception) {
+            }
         }
     }
 
     private fun loadPreview(url: String, asGif: Boolean) {
         showLoading()
-        val id = url.split("emotes/")[1]
+        currentEmoteId = url.split("emotes/")[1]
         val ext = if (asGif) "gif" else "png"
-        val baseUrl = "https://cdn.7tv.app/emote/$id/4x.$ext"
+        val baseUrl = "https://cdn.7tv.app/emote/$currentEmoteId/4x.$ext"
         val client = OkHttpClient()
         val request: Request = Request.Builder().url(baseUrl).build()
         client.newCall(request).enqueue(object : Callback {
@@ -99,12 +120,12 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
 
-                val file = File(externalCacheDir, "emote.$ext")
-                val stream = FileOutputStream(file)
+                currentFile = File(externalCacheDir, "$currentEmoteId.$ext")
+                val stream = FileOutputStream(currentFile)
                 stream.write(response.body.bytes())
                 stream.close()
                 handler.post {
-                    showPreview(file)
+                    showPreview()
                 }
             }
         })
@@ -137,7 +158,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun showPreview(file: File) {
+    private fun showPreview() {
+        val file = currentFile ?: return
         binding.placeholderContainer.isVisible = false
         binding.progressBar.isVisible = false
         binding.errorText.isVisible = false
@@ -150,10 +172,12 @@ class MainActivity : AppCompatActivity() {
             Glide.with(this)
                     .asGif()
                     .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(binding.previewImage)
         } else {
             Glide.with(this)
                     .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(binding.previewImage)
         }
     }
