@@ -13,8 +13,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.FFprobeKit
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diskree.emotes2discord.databinding.ActivityMainBinding
@@ -150,17 +148,6 @@ class MainActivity : AppCompatActivity() {
         tempDir.deleteRecursively()
         tempDir.mkdirs()
 
-        val fps = FFprobeKit.getMediaInformation(file.path).mediaInformation.streams.first().averageFrameRate
-
-        FFmpegKit.executeAsync("-i $file -vsync 0 -s 128x128 $tempDir/frame%d.png") {
-            FFmpegKit.executeAsync("-i $tempDir/frame%d.png -vf palettegen=max_colors=40:reserve_transparent=1 $tempDir/palette.png") {
-                FFmpegKit.executeAsync("-framerate $fps -i $tempDir/frame%d.png -i $tempDir/palette.png -lavfi paletteuse=alpha_threshold=128 $optimizedFile") {
-                    handler.post {
-                        showPreview()
-                    }
-                }
-            }
-        }
     }
 
     private fun saveToGallery(force: Boolean) {
@@ -231,8 +218,6 @@ class MainActivity : AppCompatActivity() {
         binding.errorText.isVisible = false
         binding.previewImage.isVisible = false
     }
-
-    private external fun stringFromJNI(): String
 
     companion object {
         init {

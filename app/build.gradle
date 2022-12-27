@@ -46,7 +46,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.9'
-    implementation 'com.arthenica:ffmpeg-kit-full:5.1'
     implementation 'com.github.bumptech.glide:glide:4.14.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
 }
