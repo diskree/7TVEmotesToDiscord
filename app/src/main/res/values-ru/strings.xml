@@ -9,4 +9,6 @@
     <string name="close">Закрыть</string>
     <string name="optimize">Оптимизировать</string>
     <string name="save_to_gallery">Сохранить в галерею</string>
+    <string name="save_to_gallery_title">Сохранить в галерею?</string>
+    <string name="save_to_gallery_description">Размер файла превышает максимально допустимый дискордом - 256КБ.\nВсе равно сохранить?</string>
 </resources>

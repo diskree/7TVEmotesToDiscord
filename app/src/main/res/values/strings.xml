@@ -9,4 +9,6 @@
     <string name="close">Close</string>
     <string name="optimize">Optimize</string>
     <string name="save_to_gallery">Save to Gallery</string>
+    <string name="save_to_gallery_title">Save to Gallery?</string>
+    <string name="save_to_gallery_description">The file size exceeds the maximum allowed by the discord - 256KB.\nSave anyway?</string>
 </resources>

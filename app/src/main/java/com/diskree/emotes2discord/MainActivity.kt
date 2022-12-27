@@ -1,6 +1,5 @@
 package com.diskree.emotes2discord
 
-import android.annotation.SuppressLint
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -10,9 +9,12 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.text.TextUtils
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFprobeKit
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diskree.emotes2discord.databinding.ActivityMainBinding
@@ -24,12 +26,18 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
-    private val handler: Handler by lazy { Handler(mainLooper) }
     private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    private var currentFile: File? = null
-    private var currentEmoteId: String? = null
+    private val handler: Handler by lazy { Handler(mainLooper) }
+    private var emoteId: String? = null
+    private var originalFile: File? = null
+    private var isGif = false
+    private var originalWidth = 0
+    private var originalHeight = 0
+    private var optimizedFile: File? = null
+    private var optimizedScale = 1.0F
+    private var colorReductionLevel = 256
+    private var skipFrameAt = -1
 
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -64,50 +72,29 @@ class MainActivity : AppCompatActivity() {
                 loadPreview(binding.inputBar.text.toString(), true)
                 return@setOnClickListener
             }
-
         }
         binding.closeButton.setOnClickListener {
             showPlaceholder()
             binding.inputBar.setText("")
         }
         binding.optimizeButton.setOnClickListener {
-
+            optimizeGif()
         }
         binding.saveButton.setOnClickListener {
-            val file = currentFile ?: return@setOnClickListener
-            val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString() + "/" + "7TV")
-            } else {
-                File(Environment.getExternalStorageDirectory().toString() + "/" + "7TV")
-            }
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-            file.copyTo(File(dir, "$currentEmoteId.${file.extension}"), true)
-            val uri = Uri.fromFile(file);
-            try {
-                val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                mediaScanIntent.data = uri
-                sendBroadcast(mediaScanIntent)
-            } catch (_: Exception) {
-            }
+            saveToGallery(false)
         }
     }
 
     private fun loadPreview(url: String, asGif: Boolean) {
         showLoading()
-        currentEmoteId = url.split("emotes/")[1]
-        val ext = if (asGif) "gif" else "png"
-        val baseUrl = "https://cdn.7tv.app/emote/$currentEmoteId/4x.$ext"
-        val client = OkHttpClient()
-        val request: Request = Request.Builder().url(baseUrl).build()
-        client.newCall(request).enqueue(object : Callback {
+        emoteId = url.split("emotes/")[1]
+        val fileExtension = if (asGif) "gif" else "png"
+        OkHttpClient().newCall(Request.Builder().url("https://cdn.7tv.app/emote/$emoteId/4x.$fileExtension").build()).enqueue(object : Callback {
 
             override fun onFailure(call: Call, e: IOException) {
                 showError(R.string.error_loading_internet)
             }
 
-            @SuppressLint("SetTextI18n")
             override fun onResponse(call: Call, response: Response) {
                 if (response.code == 404) {
                     handler.post {
@@ -119,9 +106,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     return
                 }
-
-                currentFile = File(externalCacheDir, "$currentEmoteId.$ext")
-                val stream = FileOutputStream(currentFile)
+                isGif = asGif
+                originalFile = File(externalCacheDir, "emote.$fileExtension")
+                val stream = FileOutputStream(originalFile)
                 stream.write(response.body.bytes())
                 stream.close()
                 handler.post {
@@ -129,6 +116,94 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun showPreview() {
+        val file = optimizedFile ?: originalFile ?: return
+        binding.placeholderContainer.isVisible = false
+        binding.progressBar.isVisible = false
+        binding.errorText.isVisible = false
+        binding.previewImage.setImageDrawable(null)
+        binding.previewImage.isVisible = true
+        binding.saveButtonText.text = getString(R.string.save_to_gallery) + "\n(" + formatFileSize(file.length()) + ")"
+        binding.searchContainer.isVisible = false
+        binding.previewActionsContainer.isVisible = true
+        if (isGif) {
+            binding.optimizeButton.isVisible = true
+            Glide.with(this)
+                    .asGif()
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(binding.previewImage)
+        } else {
+            binding.optimizeButton.isVisible = false
+            Glide.with(this)
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(binding.previewImage)
+        }
+    }
+
+    private fun optimizeGif() {
+        val file = originalFile ?: return
+        val tempDir = File("$externalCacheDir/temp")
+        tempDir.deleteRecursively()
+        tempDir.mkdirs()
+
+        val fps = FFprobeKit.getMediaInformation(file.path).mediaInformation.streams.first().averageFrameRate
+
+        FFmpegKit.executeAsync("-i $file -vsync 0 -s 128x128 $tempDir/frame%d.png") {
+            FFmpegKit.executeAsync("-i $tempDir/frame%d.png -vf palettegen=max_colors=40:reserve_transparent=1 $tempDir/palette.png") {
+                FFmpegKit.executeAsync("-framerate $fps -i $tempDir/frame%d.png -i $tempDir/palette.png -lavfi paletteuse=alpha_threshold=128 $optimizedFile") {
+                    handler.post {
+                        showPreview()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun saveToGallery(force: Boolean) {
+        val file = originalFile ?: optimizedFile ?: return
+        if (!force && file.length() >= 1024 * 256) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.save_to_gallery_title)
+                    .setMessage(R.string.save_to_gallery_description)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> saveToGallery(true) }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            return
+        }
+        val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/" + "7TV")
+        } else {
+            File(Environment.getExternalStorageDirectory().toString() + "/" + "7TV")
+        }
+        dir.mkdirs()
+        file.copyTo(File(dir, "$emoteId.${file.extension}"), true)
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        mediaScanIntent.data = Uri.fromFile(file)
+        sendBroadcast(mediaScanIntent)
+        showPlaceholder()
+    }
+
+    private fun formatFileSize(size: Long): String = when {
+        size < 1024 -> String.format("%d B", size)
+        size < 1024 * 1024 -> {
+            val value = size / 1024.0f
+            String.format("%.1f KB", value)
+        }
+        else -> {
+            val value = size / 1024.0f / 1024.0f
+            String.format("%.1f MB", value)
+        }
+    }
+
+    private fun is7TVEmoteLink(url: String): Boolean = try {
+        val uri = URL(url).toURI()
+        uri.host == "7tv.app" && uri.path.startsWith("/emotes/")
+    } catch (e: Exception) {
+        false
     }
 
     private fun showPlaceholder() {
@@ -157,55 +232,11 @@ class MainActivity : AppCompatActivity() {
         binding.previewImage.isVisible = false
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun showPreview() {
-        val file = currentFile ?: return
-        binding.placeholderContainer.isVisible = false
-        binding.progressBar.isVisible = false
-        binding.errorText.isVisible = false
-        binding.previewImage.setImageDrawable(null)
-        binding.previewImage.isVisible = true
-        binding.saveButtonText.text = getString(R.string.save_to_gallery) + "\n(" + formatFileSize(file.length(), false) + ")"
-        binding.searchContainer.isVisible = false
-        binding.previewActionsContainer.isVisible = true
-        if (file.path.endsWith(".gif")) {
-            Glide.with(this)
-                    .asGif()
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(binding.previewImage)
-        } else {
-            Glide.with(this)
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(binding.previewImage)
-        }
-    }
+    private external fun stringFromJNI(): String
 
-    private fun formatFileSize(size: Long, removeZero: Boolean): String = when {
-        size < 1024 -> String.format("%d B", size)
-        size < 1024 * 1024 -> {
-            val value = size / 1024.0f
-            if (removeZero && (value - value.toInt()) * 10 == 0f) {
-                String.format("%d KB", value.toInt())
-            } else {
-                String.format("%.1f KB", value)
-            }
+    companion object {
+        init {
+            System.loadLibrary("gifsicle")
         }
-        else -> {
-            val value = size / 1024.0f / 1024.0f
-            if (removeZero && (value - value.toInt()) * 10 == 0f) {
-                String.format("%d MB", value.toInt())
-            } else {
-                String.format("%.1f MB", value)
-            }
-        }
-    }
-
-    private fun is7TVEmoteLink(url: String): Boolean = try {
-        val uri = URL(url).toURI()
-        uri.host == "7tv.app" && uri.path.startsWith("/emotes/")
-    } catch (e: Exception) {
-        false
     }
 }
