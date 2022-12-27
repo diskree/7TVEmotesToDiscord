@@ -1,8 +1,8 @@
 .idea/
 .gradle/
 .navigation/
-.externalNativeBuild
-.cxx/
+/app/.externalNativeBuild/
+/app/.cxx/
 build/
 obj/
 bin/
