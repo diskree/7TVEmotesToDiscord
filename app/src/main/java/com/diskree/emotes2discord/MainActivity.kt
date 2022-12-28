@@ -85,6 +85,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
+                if (lossyLevel == slider.value.toInt()) {
+                    return
+                }
                 lossyLevel = slider.value.toInt()
                 optimizeGif()
             }
@@ -94,6 +97,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
+                if (colorsLimit == slider.value.toInt()) {
+                    return
+                }
                 colorsLimit = slider.value.toInt()
                 optimizeGif()
             }
@@ -103,6 +109,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
+                if (scaleFactor == slider.value) {
+                    return
+                }
                 scaleFactor = slider.value
                 optimizeGif()
             }
