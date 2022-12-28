@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="Theme.EmotesToDiscord" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.EmotesToDiscord" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowTranslucentStatus">true</item>

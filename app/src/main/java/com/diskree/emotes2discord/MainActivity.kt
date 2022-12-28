@@ -10,16 +10,24 @@ import android.os.Handler
 import android.text.TextUtils
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diskree.emotes2discord.databinding.ActivityMainBinding
+import com.google.android.material.slider.Slider
+import com.google.android.material.slider.Slider.OnSliderTouchListener
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okio.IOException
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,11 +46,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.inputBar.addTextChangedListener {
             if (binding.inputBar.text.isNotEmpty()) {
-                binding.searchButton.isVisible = true
-                binding.clipboardButton.isVisible = false
+                binding.searchButton.isInvisible = false
+                binding.clipboardButton.isInvisible = true
             } else {
-                binding.searchButton.isVisible = false
-                binding.clipboardButton.isVisible = true
+                binding.searchButton.isInvisible = true
+                binding.clipboardButton.isInvisible = false
             }
         }
         binding.siteButton.setOnClickListener {
@@ -72,9 +80,33 @@ class MainActivity : AppCompatActivity() {
             showPlaceholder()
             binding.inputBar.setText("")
         }
-        binding.optimizeButton.setOnClickListener {
-            optimizeGif()
-        }
+        binding.lossyLevelSeekBar.addOnSliderTouchListener(object : OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                lossyLevel = slider.value.toInt()
+                optimizeGif()
+            }
+        })
+        binding.colorsLimitSeekBar.addOnSliderTouchListener(object : OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                colorsLimit = slider.value.toInt()
+                optimizeGif()
+            }
+        })
+        binding.scaleFactorSeekBar.addOnSliderTouchListener(object : OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                scaleFactor = slider.value
+                optimizeGif()
+            }
+        })
         binding.saveButton.setOnClickListener {
             saveToGallery(false)
         }
@@ -114,37 +146,17 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun showPreview() {
-        val file = optimizedFile ?: originalFile ?: return
-        binding.placeholderContainer.isVisible = false
-        binding.progressBar.isVisible = false
-        binding.errorText.isVisible = false
-        binding.previewImage.setImageDrawable(null)
-        binding.previewImage.isVisible = true
-        binding.saveButtonText.text = String.format(getString(R.string.save_to_gallery), formatFileSize(file.length()))
-        binding.searchContainer.isVisible = false
-        binding.previewActionsContainer.isVisible = true
-        binding.optimizeButton.isVisible = isGif
-        if (isGif) {
-            Glide.with(this)
-                    .asGif()
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(binding.previewImage)
-        } else {
-            Glide.with(this)
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(binding.previewImage)
-        }
-    }
-
+    @OptIn(DelicateCoroutinesApi::class)
     private fun optimizeGif() {
         val file = originalFile ?: return
         optimizedFile = File(externalCacheDir, "$emoteId-optimized$GIF_EXT")
-
-        runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=$scaleFactor".split(" ").toTypedArray())
-        showPreview()
+        showLoading()
+        GlobalScope.launch(Dispatchers.IO) {
+            runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=$scaleFactor".split(" ").toTypedArray())
+            handler.post {
+                showPreview()
+            }
+        }
     }
 
     private fun resetOptimization() {
@@ -197,6 +209,8 @@ class MainActivity : AppCompatActivity() {
         binding.previewImage.isVisible = false
         binding.searchContainer.isVisible = true
         binding.previewActionsContainer.isVisible = false
+        binding.loadingBlockMask.isVisible = false
+        binding.loadingBlockContainer.alpha = 1f
     }
 
     private fun showError(resId: Int) {
@@ -207,6 +221,8 @@ class MainActivity : AppCompatActivity() {
         binding.previewImage.isVisible = false
         binding.searchContainer.isVisible = true
         binding.previewActionsContainer.isVisible = false
+        binding.loadingBlockMask.isVisible = false
+        binding.loadingBlockContainer.alpha = 1f
     }
 
     private fun showLoading() {
@@ -214,6 +230,45 @@ class MainActivity : AppCompatActivity() {
         binding.progressBar.isVisible = true
         binding.errorText.isVisible = false
         binding.previewImage.isVisible = false
+        binding.loadingBlockMask.isVisible = true
+        binding.loadingBlockContainer.alpha = 0.5f
+    }
+
+    private fun showPreview() {
+        val file = optimizedFile ?: originalFile ?: return
+        binding.placeholderContainer.isVisible = false
+        binding.progressBar.isVisible = false
+        binding.errorText.isVisible = false
+        binding.previewImage.setImageDrawable(null)
+        binding.previewImage.isVisible = true
+        binding.saveButtonText.text = String.format(getString(R.string.save_to_gallery), formatFileSize(file.length()))
+        binding.searchContainer.isVisible = false
+        binding.previewActionsContainer.isVisible = true
+        binding.optimizationContainer.isVisible = isGif
+        binding.loadingBlockMask.isVisible = false
+        binding.loadingBlockContainer.alpha = 1f
+        binding.lossyLevelSeekBar.value = lossyLevel.toFloat()
+        binding.colorsLimitSeekBar.value = colorsLimit.toFloat()
+        binding.scaleFactorSeekBar.value = scaleFactor
+        binding.lossyLevelValue.text = String.format(getString(R.string.lossy_level_title), lossyLevel)
+        binding.colorsLimitValue.text = String.format(getString(R.string.color_limit_title), colorsLimit)
+        binding.scaleFactorValue.text = String.format(Locale.ENGLISH, getString(R.string.scale_factor_title), scaleFactor)
+        binding.previewImage.scaleX = scaleFactor
+        binding.previewImage.scaleY = scaleFactor
+        if (isGif) {
+            Glide.with(this)
+                    .asGif()
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(binding.previewImage)
+        } else {
+            Glide.with(this)
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(binding.previewImage)
+        }
     }
 
     private external fun runCommand(args: Array<String>): Int
