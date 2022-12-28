@@ -65,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/bg_input_bar"
+                android:background="@drawable/bg_ripple"
                 android:paddingHorizontal="48dp"
                 android:paddingVertical="16dp"
                 android:text="@string/placeholder_button"
@@ -118,7 +118,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/bg_input_bar"
+                android:background="@drawable/bg_input"
                 android:gravity="center_vertical|left"
                 android:hint="@string/input_bar_hint"
                 android:paddingLeft="16dp"
@@ -136,7 +136,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_input_bar"
+                    android:background="@drawable/bg_ripple"
                     android:gravity="center"
                     android:includeFontPadding="false"
                     android:paddingHorizontal="30dp"
@@ -153,7 +153,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
-                    android:background="@drawable/bg_input_bar"
+                    android:background="@drawable/bg_ripple"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
                     android:rotationY="180"
@@ -184,7 +184,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_input_bar"
+                    android:background="@drawable/bg_ripple"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -216,7 +216,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="8dp"
-                    android:background="@drawable/bg_input_bar"
+                    android:background="@drawable/bg_ripple"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -247,7 +247,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_input_bar"
+                    android:background="@drawable/bg_ripple"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -288,7 +288,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_input_bar">
+                    android:background="@drawable/bg_ripple">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -311,7 +311,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="4dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_input_bar">
+                    android:background="@drawable/bg_ripple">
 
                     <TextView
                         android:id="@+id/save_button_text"
