@@ -1,16 +1,16 @@
 package com.diskree.emotes2discord
 
 import android.content.ClipboardManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Vibrator
+import android.os.*
+import android.provider.MediaStore
 import android.text.TextUtils
+import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isInvisible
@@ -30,8 +30,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.*
 import okio.IOException
-import java.io.File
-import java.io.FileOutputStream
+import java.io.*
 import java.net.URL
 import java.util.*
 
@@ -209,9 +208,22 @@ class MainActivity : AppCompatActivity() {
                     .show()
             return
         }
-        val dir = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/7TV")
-        dir.mkdirs()
-        file.copyTo(File(dir, "$emoteId.${file.extension}"), true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
+                put(MediaStore.MediaColumns.MIME_TYPE, MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension))
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "${File(Environment.DIRECTORY_PICTURES, "7TV")}${File.separator}")
+            }
+            val uri = application.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return
+            val inputStream = FileInputStream(file)
+            val outputStream = application.contentResolver.openOutputStream(uri) ?: return
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+        } else {
+            val dir = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/7TV")
+            dir.mkdirs()
+            file.copyTo(File(dir, "$emoteId.${file.extension}"), true)
+        }
         showPlaceholder()
     }
 
