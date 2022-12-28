@@ -66,8 +66,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_input_bar"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
+                android:paddingHorizontal="48dp"
+                android:paddingVertical="16dp"
                 android:text="@string/placeholder_button"
                 android:textColor="#fff" />
 
@@ -75,9 +75,10 @@
 
         <ProgressBar
             android:id="@+id/progress_bar"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_gravity="center"
+            android:indeterminateTint="#222"
             android:visibility="gone" />
 
         <TextView
@@ -102,13 +103,13 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:padding="10dp">
 
         <LinearLayout
             android:id="@+id/search_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center">
 
             <EditText
@@ -119,7 +120,7 @@
                 android:background="@drawable/bg_input_bar"
                 android:gravity="center_vertical|left"
                 android:hint="@string/input_bar_hint"
-                android:paddingLeft="12dp"
+                android:paddingLeft="16dp"
                 android:textColor="#ccc"
                 android:textColorHint="#ccc"
                 android:textSize="14sp"
@@ -128,7 +129,7 @@
             <TextView
                 android:id="@+id/clipboard_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_input_bar"
                 android:gravity="center"
@@ -144,7 +145,7 @@
             <ImageView
                 android:id="@+id/search_button"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
+                android:layout_height="match_parent"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/bg_input_bar"
                 android:gravity="center"
@@ -160,12 +161,12 @@
         <LinearLayout
             android:id="@+id/preview_actions_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:baselineAligned="false"
             android:gravity="center"
             android:orientation="horizontal"
-            android:visibility="gone"
-            android:baselineAligned="false">
+            android:visibility="gone">
 
             <FrameLayout
                 android:id="@+id/close_button"
@@ -177,7 +178,7 @@
 
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:drawablePadding="4dp"
                     android:gravity="center"
@@ -199,7 +200,7 @@
 
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:drawablePadding="8dp"
                     android:gravity="center"
@@ -215,7 +216,7 @@
             <FrameLayout
                 android:id="@+id/save_button"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_input_bar">

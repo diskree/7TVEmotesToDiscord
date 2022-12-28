@@ -6,9 +6,9 @@
     <string name="input_bar_hint">Search emote…</string>
     <string name="error_loading_internet">Loading error. Check internet connection</string>
     <string name="error_loading_url">Loading error. Check emote URL</string>
-    <string name="close">Close</string>
+    <string name="close">Cancel</string>
     <string name="optimize">Optimize</string>
-    <string name="save_to_gallery">Save to Gallery</string>
+    <string name="save_to_gallery">Save\n(%1$s)</string>
     <string name="save_to_gallery_title">Save to Gallery?</string>
     <string name="save_to_gallery_description">The file size exceeds the maximum allowed by the discord - 256KB.\nSave anyway?</string>
 </resources>

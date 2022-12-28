@@ -4,7 +4,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -29,12 +28,10 @@ class MainActivity : AppCompatActivity() {
     private var emoteId: String? = null
     private var originalFile: File? = null
     private var isGif = false
-    private var originalWidth = 0
-    private var originalHeight = 0
     private var optimizedFile: File? = null
-    private var optimizedScale = 1.0F
-    private var colorReductionLevel = 256
-    private var skipFrameAt = -1
+    private var lossyLevel = 0
+    private var colorsLimit = 0
+    private var scaleFactor = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,8 +83,8 @@ class MainActivity : AppCompatActivity() {
     private fun loadPreview(url: String, asGif: Boolean) {
         showLoading()
         emoteId = url.split("emotes/")[1]
-        val fileExtension = if (asGif) "gif" else "png"
-        OkHttpClient().newCall(Request.Builder().url("https://cdn.7tv.app/emote/$emoteId/4x.$fileExtension").build()).enqueue(object : Callback {
+        val fileExtension = if (asGif) GIF_EXT else PNG_EXT
+        OkHttpClient().newCall(Request.Builder().url("https://cdn.7tv.app/emote/$emoteId/4x$fileExtension").build()).enqueue(object : Callback {
 
             override fun onFailure(call: Call, e: IOException) {
                 showError(R.string.error_loading_internet)
@@ -105,7 +102,8 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
                 isGif = asGif
-                originalFile = File(externalCacheDir, "emote.$fileExtension")
+                originalFile = File(externalCacheDir, emoteId + fileExtension)
+                resetOptimization()
                 val stream = FileOutputStream(originalFile)
                 stream.write(response.body.bytes())
                 stream.close()
@@ -123,18 +121,17 @@ class MainActivity : AppCompatActivity() {
         binding.errorText.isVisible = false
         binding.previewImage.setImageDrawable(null)
         binding.previewImage.isVisible = true
-        binding.saveButtonText.text = getString(R.string.save_to_gallery) + "\n(" + formatFileSize(file.length()) + ")"
+        binding.saveButtonText.text = String.format(getString(R.string.save_to_gallery), formatFileSize(file.length()))
         binding.searchContainer.isVisible = false
         binding.previewActionsContainer.isVisible = true
+        binding.optimizeButton.isVisible = isGif
         if (isGif) {
-            binding.optimizeButton.isVisible = true
             Glide.with(this)
                     .asGif()
                     .load(file.path)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(binding.previewImage)
         } else {
-            binding.optimizeButton.isVisible = false
             Glide.with(this)
                     .load(file.path)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -144,14 +141,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun optimizeGif() {
         val file = originalFile ?: return
-        val tempDir = File("$externalCacheDir/temp")
-        tempDir.deleteRecursively()
-        tempDir.mkdirs()
+        optimizedFile = File(externalCacheDir, "$emoteId-optimized$GIF_EXT")
 
+        runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=$scaleFactor".split(" ").toTypedArray())
+        showPreview()
+    }
+
+    private fun resetOptimization() {
+        optimizedFile = null
+        lossyLevel = 0
+        colorsLimit = 256
+        scaleFactor = 1.0f
     }
 
     private fun saveToGallery(force: Boolean) {
-        val file = originalFile ?: optimizedFile ?: return
+        val file = optimizedFile ?: originalFile ?: return
         if (!force && file.length() >= 1024 * 256) {
             AlertDialog.Builder(this)
                     .setTitle(R.string.save_to_gallery_title)
@@ -161,16 +165,9 @@ class MainActivity : AppCompatActivity() {
                     .show()
             return
         }
-        val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + "/" + "7TV")
-        } else {
-            File(Environment.getExternalStorageDirectory().toString() + "/" + "7TV")
-        }
+        val dir = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/7TV")
         dir.mkdirs()
         file.copyTo(File(dir, "$emoteId.${file.extension}"), true)
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.data = Uri.fromFile(file)
-        sendBroadcast(mediaScanIntent)
         showPlaceholder()
     }
 
@@ -219,9 +216,14 @@ class MainActivity : AppCompatActivity() {
         binding.previewImage.isVisible = false
     }
 
+    private external fun runCommand(args: Array<String>): Int
+
     companion object {
         init {
             System.loadLibrary("gifsicle")
         }
+
+        private const val GIF_EXT = ".gif"
+        private const val PNG_EXT = ".png"
     }
 }

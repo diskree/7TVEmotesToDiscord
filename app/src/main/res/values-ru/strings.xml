@@ -6,9 +6,9 @@
     <string name="input_bar_hint">Поиск эмоута…</string>
     <string name="error_loading_internet">Ошибка загрузки. Проверьте подключение к Интернету</string>
     <string name="error_loading_url">Ошибка загрузки. Проверьте ссылку на эмоут</string>
-    <string name="close">Закрыть</string>
-    <string name="optimize">Оптимизировать</string>
-    <string name="save_to_gallery">Сохранить в галерею</string>
+    <string name="close">Отмена</string>
+    <string name="optimize">Сжать</string>
+    <string name="save_to_gallery">Сохранить\n(%1$s)</string>
     <string name="save_to_gallery_title">Сохранить в галерею?</string>
     <string name="save_to_gallery_description">Размер файла превышает максимально допустимый дискордом - 256КБ.\nВсе равно сохранить?</string>
 </resources>

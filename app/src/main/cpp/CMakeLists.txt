@@ -37,6 +37,7 @@ add_library( # Sets the name of the library.
         gifsicle/source/xform.c
         gifsicle/source/gifsicle.c
         gifsicle/source/gifwrite.c
+        gifsicle/wrapper.c
         gifsicle/include/lcdf/clp.h
         gifsicle/include/lcdf/inttypes.h
         gifsicle/include/lcdfgif/gif.h
