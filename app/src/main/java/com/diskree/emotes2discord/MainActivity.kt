@@ -78,10 +78,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.searchButton.setOnClickListener {
-            if (is7TVEmoteLink(binding.inputBar.text.toString())) {
+            val text = binding.inputBar.text.toString()
+            if (is7TVEmoteLink(text)) {
                 loadFile(binding.inputBar.text.toString(), true)
                 return@setOnClickListener
             }
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://7tv.app/emotes?page=1&query=$text")))
         }
         binding.closeButton.setOnClickListener {
             showPlaceholder()
