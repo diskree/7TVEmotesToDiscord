@@ -14,7 +14,10 @@ project("gifsicle")
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-include_directories(gifsicle/include)
+include_directories(
+        gifsicle/include
+        gifsicle
+)
 add_library( # Sets the name of the library.
         gifsicle
 
@@ -22,6 +25,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
+        gifsicle/config.h
         gifsicle/src/clp.c
         gifsicle/src/fmalloc.c
         gifsicle/src/giffunc.c
@@ -35,6 +39,7 @@ add_library( # Sets the name of the library.
         gifsicle/src/support.c
         gifsicle/src/xform.c
         gifsicle/src/gifsicle.c
+        gifsicle/src/gifwrite.c
         gifsicle/include/lcdf/clp.h
         gifsicle/include/lcdf/inttypes.h
         gifsicle/include/lcdfgif/gif.h

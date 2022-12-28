@@ -817,23 +817,6 @@ Gif_Debug(char *x, ...)
     va_end(val);
 }
 
-
-#if !GIF_ALLOCATOR_DEFINED
-void* Gif_Realloc(void* p, size_t s, size_t n, const char* file, int line) {
-    (void) file, (void) line;
-    if (s == 0 || n == 0)
-        Gif_Free(p);
-    else if (s == 1 || n == 1 || s <= ((size_t) -1) / n)
-        return realloc(p, s * n);
-    return (void*) 0;
-}
-
-#undef Gif_Free
-void Gif_Free(void* p) {
-    free(p);
-}
-#endif
-
 #ifdef __cplusplus
 }
 #endif

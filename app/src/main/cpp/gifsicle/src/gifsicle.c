@@ -8,6 +8,7 @@
    as this notice is kept intact and this source code is made available. There
    is no warranty, express or implied. */
 
+#include <config.h>
 #include "gifsicle.h"
 #include "kcolor.h"
 #include <string.h>
@@ -903,12 +904,6 @@ write_stream(const char *output_name, Gif_Stream *gfs)
   if (output_name)
     f = fopen(output_name, "wb");
   else {
-#ifndef OUTPUT_GIF_TO_TERMINAL
-    if (isatty(fileno(stdout))) {
-      lerror("<stdout>", "is a terminal");
-      return;
-    }
-#endif
 #if defined(_MSDOS) || defined(_WIN32)
     _setmode(_fileno(stdout), _O_BINARY);
 #elif defined(__DJGPP__)
@@ -1333,13 +1328,6 @@ copy_crop(Gt_Crop *oc)
 int
 main(int argc, char *argv[])
 {
-  /* Check SIZEOF constants (useful for Windows). If these assertions fail,
-     you've used the wrong Makefile. You should've used Makefile.w32 for
-     32-bit Windows and Makefile.w64 for 64-bit Windows. */
-  static_assert(sizeof(unsigned int) == SIZEOF_UNSIGNED_INT, "unsigned int has the wrong size.");
-  static_assert(sizeof(unsigned long) == SIZEOF_UNSIGNED_LONG, "unsigned long has the wrong size.");
-  static_assert(sizeof(void*) == SIZEOF_VOID_P, "void* has the wrong size.");
-
   clp = Clp_NewParser(argc, (const char * const *)argv, sizeof(options) / sizeof(options[0]), options);
 
   Clp_AddStringListType
