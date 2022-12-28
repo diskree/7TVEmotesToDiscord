@@ -14,10 +14,7 @@ project("gifsicle")
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-include_directories(
-        gifsicle/include
-        gifsicle
-)
+include_directories(gifsicle/include)
 add_library( # Sets the name of the library.
         gifsicle
 
@@ -25,21 +22,21 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        gifsicle/config.h
-        gifsicle/src/clp.c
-        gifsicle/src/fmalloc.c
-        gifsicle/src/giffunc.c
-        gifsicle/src/gifread.c
-        gifsicle/src/gifunopt.c
-        gifsicle/src/gifsicle.h
-        gifsicle/src/kcolor.h
-        gifsicle/src/merge.c
-        gifsicle/src/optimize.c
-        gifsicle/src/quantize.c
-        gifsicle/src/support.c
-        gifsicle/src/xform.c
-        gifsicle/src/gifsicle.c
-        gifsicle/src/gifwrite.c
+        gifsicle/source/config.h
+        gifsicle/source/clp.c
+        gifsicle/source/fmalloc.c
+        gifsicle/source/giffunc.c
+        gifsicle/source/gifread.c
+        gifsicle/source/gifunopt.c
+        gifsicle/source/gifsicle.h
+        gifsicle/source/kcolor.h
+        gifsicle/source/merge.c
+        gifsicle/source/optimize.c
+        gifsicle/source/quantize.c
+        gifsicle/source/support.c
+        gifsicle/source/xform.c
+        gifsicle/source/gifsicle.c
+        gifsicle/source/gifwrite.c
         gifsicle/include/lcdf/clp.h
         gifsicle/include/lcdf/inttypes.h
         gifsicle/include/lcdfgif/gif.h
