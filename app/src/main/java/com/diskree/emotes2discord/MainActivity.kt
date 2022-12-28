@@ -3,6 +3,8 @@ package com.diskree.emotes2discord
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -15,6 +17,9 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.gif.GifDrawable
+import com.bumptech.glide.request.target.BitmapImageViewTarget
+import com.bumptech.glide.request.target.ImageViewTarget
 import com.diskree.emotes2discord.databinding.ActivityMainBinding
 import com.google.android.material.slider.Slider
 import com.google.android.material.slider.Slider.OnSliderTouchListener
@@ -37,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private var originalFile: File? = null
     private var isGif = false
     private var optimizedFile: File? = null
+    private var emoteWidth = 0
+    private var emoteHeight = 0
     private var lossyLevel = 0
     private var colorsLimit = 0
     private var scaleFactor = 0f
@@ -63,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                 val clipData = clip.getItemAt(0)
                 if (clipData != null && !TextUtils.isEmpty(clipData.text)) {
                     if (is7TVEmoteLink(clipData.text.toString())) {
-                        loadPreview(clipData.text.toString(), true)
+                        loadFile(clipData.text.toString(), true)
                     } else {
                         showError(R.string.error_loading_url)
                     }
@@ -72,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.searchButton.setOnClickListener {
             if (is7TVEmoteLink(binding.inputBar.text.toString())) {
-                loadPreview(binding.inputBar.text.toString(), true)
+                loadFile(binding.inputBar.text.toString(), true)
                 return@setOnClickListener
             }
         }
@@ -121,7 +128,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadPreview(url: String, asGif: Boolean) {
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun loadFile(url: String, asGif: Boolean) {
         showLoading()
         emoteId = url.split("emotes/")[1]
         val fileExtension = if (asGif) GIF_EXT else PNG_EXT
@@ -135,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                 if (response.code == 404) {
                     handler.post {
                         if (asGif) {
-                            loadPreview(url, false)
+                            loadFile(url, false)
                         } else {
                             showError(R.string.error_loading_url)
                         }
@@ -145,11 +153,13 @@ class MainActivity : AppCompatActivity() {
                 isGif = asGif
                 originalFile = File(externalCacheDir, emoteId + fileExtension)
                 resetOptimization()
-                val stream = FileOutputStream(originalFile)
-                stream.write(response.body.bytes())
-                stream.close()
-                handler.post {
-                    showPreview()
+                GlobalScope.launch(Dispatchers.IO) {
+                    val stream = FileOutputStream(originalFile)
+                    stream.write(response.body.bytes())
+                    stream.close()
+                    handler.post {
+                        loadPreview()
+                    }
                 }
             }
         })
@@ -163,13 +173,15 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.IO) {
             runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=$scaleFactor".split(" ").toTypedArray())
             handler.post {
-                showPreview()
+                loadPreview()
             }
         }
     }
 
     private fun resetOptimization() {
         optimizedFile = null
+        emoteWidth = 0
+        emoteHeight = 0
         lossyLevel = 0
         colorsLimit = 256
         scaleFactor = 1.0f
@@ -243,14 +255,57 @@ class MainActivity : AppCompatActivity() {
         binding.loadingBlockContainer.alpha = 0.5f
     }
 
+    private fun loadPreview() {
+        val file = optimizedFile ?: originalFile ?: return
+        if (isGif) {
+            Glide.with(this)
+                    .asGif()
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(object : ImageViewTarget<GifDrawable>(binding.previewImage) {
+                        override fun setResource(resource: GifDrawable?) {
+                            resource ?: return
+                            emoteWidth = resource.intrinsicWidth
+                            emoteHeight = resource.intrinsicHeight
+                            showPreview()
+                            binding.previewImage.setImageDrawable(resource)
+                        }
+
+                        override fun onLoadFailed(errorDrawable: Drawable?) {
+                            super.onLoadFailed(errorDrawable)
+                            showError(R.string.error_loading_preview)
+                        }
+                    })
+        } else {
+            Glide.with(this)
+                    .asBitmap()
+                    .load(file.path)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(object : BitmapImageViewTarget(binding.previewImage) {
+                        override fun setResource(resource: Bitmap?) {
+                            resource ?: return
+                            emoteWidth = resource.width
+                            emoteHeight = resource.height
+                            showPreview()
+                            super.setResource(resource)
+                        }
+
+                        override fun onLoadFailed(errorDrawable: Drawable?) {
+                            showError(R.string.error_loading_preview)
+                        }
+                    })
+        }
+    }
+
     private fun showPreview() {
         val file = optimizedFile ?: originalFile ?: return
         binding.placeholderContainer.isVisible = false
         binding.progressBar.isVisible = false
         binding.errorText.isVisible = false
-        binding.previewImage.setImageDrawable(null)
         binding.previewImage.isVisible = true
-        binding.saveButtonText.text = String.format(getString(R.string.save_to_gallery), formatFileSize(file.length()))
+        binding.saveButtonText.text = String.format(getString(R.string.save_to_gallery), emoteWidth, emoteHeight, formatFileSize(file.length()))
         binding.searchContainer.isVisible = false
         binding.previewActionsContainer.isVisible = true
         binding.optimizationContainer.isVisible = isGif
@@ -264,20 +319,6 @@ class MainActivity : AppCompatActivity() {
         binding.scaleFactorValue.text = String.format(Locale.ENGLISH, getString(R.string.scale_factor_title), scaleFactor)
         binding.previewImage.scaleX = scaleFactor
         binding.previewImage.scaleY = scaleFactor
-        if (isGif) {
-            Glide.with(this)
-                    .asGif()
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
-                    .into(binding.previewImage)
-        } else {
-            Glide.with(this)
-                    .load(file.path)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
-                    .into(binding.previewImage)
-        }
     }
 
     private external fun runCommand(args: Array<String>): Int
