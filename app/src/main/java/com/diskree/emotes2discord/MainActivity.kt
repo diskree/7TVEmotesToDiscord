@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.os.Vibrator
 import android.text.TextUtils
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private var emoteHeight = 0
     private var lossyLevel = 0
     private var colorsLimit = 0
-    private var scaleFactor = 0f
+    private var scaleFactor = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +88,9 @@ class MainActivity : AppCompatActivity() {
             showPlaceholder()
             binding.inputBar.setText("")
         }
+        binding.saveButton.setOnClickListener {
+            saveToGallery(false)
+        }
         binding.lossyLevelSeekBar.addOnSliderTouchListener(object : OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
             }
@@ -116,16 +120,23 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
-                if (scaleFactor == slider.value) {
+                if (scaleFactor == slider.value.toInt()) {
                     return
                 }
-                scaleFactor = slider.value
+                scaleFactor = slider.value.toInt()
                 optimizeGif()
             }
         })
-        binding.saveButton.setOnClickListener {
-            saveToGallery(false)
+
+        @Suppress("DEPRECATION") val vibrationChangeListener = Slider.OnChangeListener { _, _, fromUser ->
+            if (fromUser) {
+                val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+                vibrator.vibrate(20)
+            }
         }
+        binding.lossyLevelSeekBar.addOnChangeListener(vibrationChangeListener)
+        binding.colorsLimitSeekBar.addOnChangeListener(vibrationChangeListener)
+        binding.scaleFactorSeekBar.addOnChangeListener(vibrationChangeListener)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -171,7 +182,7 @@ class MainActivity : AppCompatActivity() {
         optimizedFile = File(externalCacheDir, "$emoteId-optimized$GIF_EXT")
         showLoading()
         GlobalScope.launch(Dispatchers.IO) {
-            runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=$scaleFactor".split(" ").toTypedArray())
+            runCommand("${file.path} --output=${optimizedFile!!.path} --lossy=$lossyLevel --colors=$colorsLimit --scale=${scaleFactor / 100f}".split(" ").toTypedArray())
             handler.post {
                 loadPreview()
             }
@@ -184,7 +195,7 @@ class MainActivity : AppCompatActivity() {
         emoteHeight = 0
         lossyLevel = 0
         colorsLimit = 256
-        scaleFactor = 1.0f
+        scaleFactor = 100
     }
 
     private fun saveToGallery(force: Boolean) {
@@ -208,11 +219,11 @@ class MainActivity : AppCompatActivity() {
         size < 1024 -> String.format("%d B", size)
         size < 1024 * 1024 -> {
             val value = size / 1024.0f
-            String.format("%.1f KB", value)
+            String.format(Locale.ENGLISH, "%.1f KB", value)
         }
         else -> {
             val value = size / 1024.0f / 1024.0f
-            String.format("%.1f MB", value)
+            String.format(Locale.ENGLISH, "%.1f MB", value)
         }
     }
 
@@ -313,12 +324,12 @@ class MainActivity : AppCompatActivity() {
         binding.loadingBlockContainer.alpha = 1f
         binding.lossyLevelSeekBar.value = lossyLevel.toFloat()
         binding.colorsLimitSeekBar.value = colorsLimit.toFloat()
-        binding.scaleFactorSeekBar.value = scaleFactor
+        binding.scaleFactorSeekBar.value = scaleFactor.toFloat()
         binding.lossyLevelValue.text = String.format(getString(R.string.lossy_level_title), lossyLevel)
         binding.colorsLimitValue.text = String.format(getString(R.string.color_limit_title), colorsLimit)
         binding.scaleFactorValue.text = String.format(Locale.ENGLISH, getString(R.string.scale_factor_title), scaleFactor)
-        binding.previewImage.scaleX = scaleFactor
-        binding.previewImage.scaleY = scaleFactor
+        binding.previewImage.scaleX = scaleFactor / 100f
+        binding.previewImage.scaleY = scaleFactor / 100f
     }
 
     private external fun runCommand(args: Array<String>): Int

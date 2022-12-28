@@ -8,10 +8,10 @@
     <string name="error_loading_url">Loading error. Check emote URL</string>
     <string name="error_loading_preview">Preview loading error</string>
     <string name="close">Cancel</string>
-    <string name="save_to_gallery">Save\n(%1$d*%2$d, %3$s)</string>
+    <string name="save_to_gallery">Save\n(%1$dx%2$d, %3$s)</string>
     <string name="save_to_gallery_title">Save to Gallery?</string>
     <string name="save_to_gallery_description">The file size exceeds the maximum allowed by the discord - 256KB.\nSave anyway?</string>
     <string name="lossy_level_title">Gifsicle Lossy - %1$d</string>
     <string name="color_limit_title">Color Reduction - %1$d</string>
-    <string name="scale_factor_title">Scaling - %.1f</string>
+    <string name="scale_factor_title">Scaling - %1$d \%%</string>
 </resources>

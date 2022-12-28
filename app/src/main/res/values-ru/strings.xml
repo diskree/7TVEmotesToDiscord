@@ -8,10 +8,10 @@
     <string name="error_loading_url">Ошибка загрузки. Проверьте ссылку на эмоут</string>
     <string name="error_loading_preview">Ошибка загрузки предпросмотра</string>
     <string name="close">Отмена</string>
-    <string name="save_to_gallery">Сохранить\n(%1$d*%2$d, %3$s)</string>
+    <string name="save_to_gallery">Сохранить\n(%1$dx%2$d, %3$s)</string>
     <string name="save_to_gallery_title">Сохранить в галерею?</string>
     <string name="save_to_gallery_description">Размер файла превышает максимально допустимый дискордом - 256КБ.\nВсе равно сохранить?</string>
     <string name="lossy_level_title">Gifsicle Lossy - %1$d</string>
     <string name="color_limit_title">Цветопередача - %1$d</string>
-    <string name="scale_factor_title">Масштабирование - %.1f</string>
+    <string name="scale_factor_title">Масштабирование - %1$d \%%</string>
 </resources>
